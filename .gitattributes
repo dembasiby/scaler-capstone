@@ -1,6 +1,1 @@
-/mvnw text eol=lf
-*.cmd text eol=crlf
 * text=auto
-.env text eol=lf
-.env text eol=lf
-*.env text eol=lf

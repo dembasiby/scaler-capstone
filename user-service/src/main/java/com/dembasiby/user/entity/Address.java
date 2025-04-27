@@ -1,12 +1,16 @@
 package com.dembasiby.user.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Entity
+@Embeddable
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Address {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     @Column(nullable = false)
     private String street;
     private String street2;
@@ -17,6 +21,4 @@ public class Address {
     private String zip;
     @Column(nullable = false)
     private String country;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private UserProfile userProfile;
 }

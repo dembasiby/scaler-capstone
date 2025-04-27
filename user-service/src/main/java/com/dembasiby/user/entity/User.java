@@ -37,6 +37,10 @@ public class User implements UserDetails {
     @Column(name = "updated_at", nullable = false)
     private Date updatedAt;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    private UserProfile userProfile;
+
 //    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
     @Setter
     @ElementCollection(fetch = FetchType.EAGER)

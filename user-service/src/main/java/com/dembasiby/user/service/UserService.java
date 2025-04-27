@@ -30,7 +30,7 @@ public class UserService {
         this.jwtUtil = jwtUtil;
     }
 
-    public String registration(UserRegistrationDto userDto) {
+    public String register(UserRegistrationDto userDto) {
         if (userRepository.findByUsername(userDto.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Username is already in use");
         }

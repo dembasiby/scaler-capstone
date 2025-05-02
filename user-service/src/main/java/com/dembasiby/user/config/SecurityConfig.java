@@ -39,7 +39,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/users/**").hasRole("USER")
+                    .requestMatchers("/api/users").hasRole("ADMIN") // Only admins can access getAllUsers
+                    .requestMatchers("/api/users/profile").hasRole("USER") // Profile endpoints for any user
                     .requestMatchers("/api/auth/**").permitAll()
                     .anyRequest().authenticated()
             )

@@ -97,4 +97,12 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public UserProfile getUserProfile() {
+        return this.userProfile;
+    }
+
+    public void setUserProfile(UserProfile profile) {
+        this.userProfile = profile;
+    }
 }

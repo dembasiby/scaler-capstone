@@ -47,6 +47,7 @@ public class JwtUtil {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (JwtException e) {
+            logger.warning("Failed to extract JWT claims: " + e.getMessage());
             throw new JwtException("Failed to extract JWT claims: " + e.getMessage(), e);
         }
     }
@@ -54,6 +55,9 @@ public class JwtUtil {
     public List<SimpleGrantedAuthority> extractAuthorities(Claims claims) {
         @SuppressWarnings("unchecked")
         List<String> authorities = claims.get(AUTHORITIES_CLAIM, List.class);
+        if (authorities == null) {
+            return Collections.emptyList();
+        }
         return authorities.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
@@ -63,11 +67,12 @@ public class JwtUtil {
         try {
             Claims claims = extractAllClaims(token);
             if (isTokenExpired(claims)) {
+                logger.warning("JWT token is expired");
                 return false;
             }
             return claims.getSubject().equals(user.getUsername());
         } catch (JwtException | IllegalArgumentException e) {
-            logger.info("Invalid JWT: " + e.getMessage());
+            logger.warning("Invalid JWT: " + e.getMessage());
             return false;
         }
     }

@@ -56,5 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Log the error and continue the filter chain
             logger.error("Failed to process JWT token", e);
         }
+        
+        filterChain.doFilter(request, response);
     }
 }

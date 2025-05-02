@@ -19,6 +19,7 @@ spring:
           uri: lib://user-service
           predicates:
             - Path=/api/users/**
+            - Path=/api/auth/**
         # Add other service routes later
 eureka:
   client:

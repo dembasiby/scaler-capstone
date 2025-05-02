@@ -21,7 +21,7 @@ spring:
       uri: http://config-server:8888
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: q5v8y/B?E(H+MbPeShVmYq3t6w9z$C&F
   expiration: 3600000
 
 eureka:
@@ -30,3 +30,8 @@ eureka:
       defaultZone: http://eureka-server:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

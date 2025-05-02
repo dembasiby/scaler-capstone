@@ -6,18 +6,20 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
-    Logger logger = Logger.getLogger(this.getClass().getName());
+    private static final Logger logger = Logger.getLogger(JwtUtil.class.getName());
+    private static final String AUTHORITIES_CLAIM = "auth";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -27,22 +29,34 @@ public class JwtUtil {
 
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("authorities", user.getAuthorities());
+
+        List<String> authorities = user.getAuthorities()
+                .stream().map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        claims.put(AUTHORITIES_CLAIM, authorities);
         return createToken(claims, user.getUsername());
     }
 
     public Claims extractAllClaims(String token) throws JwtException {
-       try {
-           SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-           return Jwts.parser()
-                   .verifyWith(key)
-                   .build()
-                   .parseSignedClaims(token)
-                   .getPayload();
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (JwtException e) {
+            throw new JwtException("Failed to extract JWT claims: " + e.getMessage(), e);
+        }
+    }
 
-       } catch (JwtException e) {
-           throw new JwtException("Failed to extract JWT claims: " + e.getMessage(), e);
-       }
+    public List<SimpleGrantedAuthority> extractAuthorities(Claims claims) {
+        @SuppressWarnings("unchecked")
+        List<String> authorities = claims.get(AUTHORITIES_CLAIM, List.class);
+        return authorities.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     public boolean validateToken(String token, User user) {
@@ -51,11 +65,9 @@ public class JwtUtil {
             if (isTokenExpired(claims)) {
                 return false;
             }
-
-            final String username = claims.getSubject();
-            return username.equals(user.getUsername());
+            return claims.getSubject().equals(user.getUsername());
         } catch (JwtException | IllegalArgumentException e) {
-            logger.info("Invalid Jwt" + e.getMessage());
+            logger.info("Invalid JWT: " + e.getMessage());
             return false;
         }
     }
@@ -65,8 +77,7 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
-        byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
-        SecretKey key = Keys.hmacShaKeyFor(secretBytes);
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)

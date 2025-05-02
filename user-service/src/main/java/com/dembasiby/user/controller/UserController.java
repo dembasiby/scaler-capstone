@@ -4,6 +4,7 @@ import com.dembasiby.user.dto.ApiResponse;
 import com.dembasiby.user.dto.UserProfileDto;
 import com.dembasiby.user.service.UserProfileService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<UserProfileDto>>> getAllUsers() {
         List<UserProfileDto> profiles = userProfileService.getAllUserProfiles();
         return ResponseEntity.ok(new ApiResponse<>(true, "Users retrieved successfully", profiles));

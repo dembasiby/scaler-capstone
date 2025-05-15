@@ -43,6 +43,7 @@ public class UserProfileService {
         UserProfile userProfile = user.getUserProfile();
         if (userProfile == null) {
             userProfile = new UserProfile();
+            userProfile.setAddresses(new HashSet<>());
             user.setUserProfile(userProfile);
         }
 
@@ -51,26 +52,29 @@ public class UserProfileService {
         userProfile.setLastName(profileDto.getLastName());
         
         // Handle addresses
-        if (profileDto.getAddresses() != null) {
-            if (userProfile.getAddresses() == null) {
-                userProfile.setAddresses(new HashSet<>());
-            } else {
+        if (profileDto.getAddresses() != null && !profileDto.getAddresses().isEmpty()) {
+            // Clear existing addresses to avoid orphaned records
+            if (userProfile.getAddresses() != null) {
                 userProfile.getAddresses().clear();
+            } else {
+                userProfile.setAddresses(new HashSet<>());
             }
             
+            // Add new addresses
             for (UserProfileDto.AddressDto addrDto : profileDto.getAddresses()) {
-                Address address = new Address(
-                    addrDto.getStreet(),
-                    addrDto.getStreet2(),
-                    addrDto.getCity(),
-                    addrDto.getState(),
-                    addrDto.getZip(),
-                    addrDto.getCountry()
-                );
+                Address address = new Address();
+                address.setStreet(addrDto.getStreet());
+                address.setStreet2(addrDto.getStreet2());
+                address.setCity(addrDto.getCity());
+                address.setState(addrDto.getState());
+                address.setZip(addrDto.getZip());
+                address.setCountry(addrDto.getCountry());
+                
                 userProfile.getAddresses().add(address);
             }
         }
         
+        // Save the updated user profile
         userRepository.save(user);
         
         return new ApiResponse<>(true, "Profile updated successfully", mapToDto(userProfile));

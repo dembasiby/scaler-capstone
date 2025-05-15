@@ -8,6 +8,9 @@ import com.dembasiby.user.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,6 +51,20 @@ public class AuthController {
             return ResponseEntity.internalServerError()
                     .body(new ApiResponse<>(false, "An unexpected error occurred"));
         }
+    }
+
+    @PostMapping("/register-admin")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> registerAdmin(@Valid @RequestBody UserRegistrationDto userDto) {
+        ApiResponse<String> response = authService.registerAdmin(userDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/promote/{email}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> promoteToAdmin(@PathVariable String email) {
+        ApiResponse<String> response = authService.promoteToAdmin(email);
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -11,7 +11,12 @@ public class UserProfile {
     private Long id;
     private String firstName;
     private String lastName;
+    
     @ElementCollection
+    @CollectionTable(
+        name = "user_profile_addresses",
+        joinColumns = @JoinColumn(name = "user_profile_id")
+    )
     private Set<Address> addresses;
 
     public UserProfile(String firstName, String lastName, Set<Address> addresses) {

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
+@Import({AuthService.class, JwtAuthenticationFilter.class}) // Import the beans instead of mocking
 class AuthControllerIntegrationTest {
 
     @Autowired
@@ -35,11 +36,8 @@ class AuthControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private AuthService authService;
-    
-    @MockBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private AuthService authService; // Autowire instead of mock
 
     @Test
     void register_Success() throws Exception {

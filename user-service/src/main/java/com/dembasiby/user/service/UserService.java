@@ -1,3 +1,6 @@
+package com.dembasiby.user.service;
+import com.dembasiby.user.entity.User;
+
 public User createAdminUser(UserDto userDto) {
     User user = createUser(userDto);
     user.setRole(Role.ADMIN);

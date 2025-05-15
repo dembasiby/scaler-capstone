@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,22 +64,69 @@ public class AuthService {
                             requestDto.getPassword()
                     )
             );
+            
+            User user = userRepository.findByEmail(requestDto.getEmail())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            String token = jwtUtil.generateToken(user);
+            
+            List<String> roles = user.getAuthorities().stream()
+                    .map(authority -> authority.getAuthority())
+                    .collect(Collectors.toList());
+                    
+            return new JwtResponseDto(token, user.getEmail(), roles);
         } catch (BadCredentialsException e) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,  // Return 401 instead of 403
                     "Invalid email or password"
             );
+        } catch (Exception e) {
+            // Log the exception for debugging
+            e.printStackTrace();
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "An error occurred during login: " + e.getMessage()
+            );
+        }
+    }
+
+    public ApiResponse<String> registerAdmin(UserRegistrationDto userDto) {
+        String email = userDto.getEmail();
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("Email is already in use");
         }
 
-        User user = userRepository.findByEmail(requestDto.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setAuthorities(Collections.singletonList(new Authority("ROLE_ADMIN")));
 
-        String token = jwtUtil.generateToken(user);
+        userRepository.save(user);
+
+        return new ApiResponse<>(true, "Admin user registered successfully");
+    }
+
+    public ApiResponse<String> promoteToAdmin(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
         
-        List<String> roles = user.getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
-                .collect(Collectors.toList());
-                
-        return new JwtResponseDto(token, user.getEmail(), roles);
+        // Check if user already has admin role
+        boolean isAlreadyAdmin = user.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (isAlreadyAdmin) {
+            return new ApiResponse<>(false, "User already has admin role");
+        }
+        
+        // Get the current authorities and create a new list with the admin role added
+        List<Authority> currentAuthorities = new ArrayList<>(user.getAuthorities().size() + 1);
+        currentAuthorities.addAll((Collection<Authority>) user.getAuthorities());
+        currentAuthorities.add(new Authority("ROLE_ADMIN"));
+        
+        // Set the updated authorities list
+        user.setAuthorities(currentAuthorities);
+        userRepository.save(user);
+        
+        return new ApiResponse<>(true, "User promoted to admin successfully");
     }
 }

@@ -83,6 +83,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/${USER_DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${USER_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+      JWT_SECRET: q5v8y/B?E(H+MbPeShVmYq3t6w9z$C&F
     networks:
       - scaler-network
 

@@ -11,6 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,7 +25,17 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<String>> register(@RequestBody UserRegistrationDto userRegistrationDto) {
+    public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody UserRegistrationDto userRegistrationDto,
+                                                       BindingResult bindingResult) {
+        // Check for validation errors
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getFieldErrors().stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .collect(Collectors.joining(", "));
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, errorMessage));
+        }
+        
         try {
             ApiResponse<String> response = authService.register(userRegistrationDto);
             return ResponseEntity.ok(response);
@@ -32,7 +44,7 @@ public class AuthController {
                     .body(new ApiResponse<>(false, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(new ApiResponse<>(false, "An unexpected error occurred"));
+                    .body(new ApiResponse<>(false, "An unexpected error occurred: " + e.getMessage()));
         }
     }
 

@@ -15,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -41,7 +44,10 @@ public class AuthService {
 
     public ApiResponse<String> register(UserRegistrationDto userDto) {
         String email = userDto.getEmail();
+        logger.info("Attempting to register user with email: {}", email);
+        
         if (userRepository.findByEmail(email).isPresent()) {
+            logger.warn("Registration failed: Email {} is already in use", email);
             throw new IllegalArgumentException("Email is already in use");
         }
 
@@ -51,6 +57,7 @@ public class AuthService {
         user.setAuthorities(Collections.singletonList(new Authority("ROLE_USER")));
 
         userRepository.save(user);
+        logger.info("User registered successfully: {}", email);
 
         return new ApiResponse<>(true, "User registered successfully");
     }

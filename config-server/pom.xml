@@ -27,6 +27,11 @@
             <artifactId>spring-cloud-config-server</artifactId>
             <version>4.2.2</version>
         </dependency>
+        <!-- Add Spring Boot Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

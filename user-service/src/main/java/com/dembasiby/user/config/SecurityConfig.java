@@ -1,5 +1,6 @@
 package com.dembasiby.user.config;
 
+import com.dembasiby.user.security.GatewayAuthenticationFilter;
 import com.dembasiby.user.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -41,13 +43,17 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/users").hasRole("ADMIN") // Only admins can access getAllUsers
-                    .requestMatchers("/api/users/profile").hasRole("USER") // Profile endpoints for any user
+                    .requestMatchers("/api/users").hasRole("ADMIN")
+                    .requestMatchers("/api/users/profile").hasRole("USER")
                     .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/actuator/health").permitAll() // Allow health check
                     .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // Add JWT authentication filter BEFORE gateway filter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            // Add gateway authentication filter
+            .addFilterBefore(new GatewayAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable);
 

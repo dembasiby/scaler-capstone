@@ -8,4 +8,14 @@ spring:
       server:
         git:
           uri: file://${user.home}/config-repo
+          default-label: main
+          clone-on-start: true
+          force-pull: true
+    compatibility-verifier:
+      enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 

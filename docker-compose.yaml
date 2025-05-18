@@ -4,6 +4,16 @@ services:
     build: ./config-server
     ports:
       - "8888:8888"
+    volumes:
+      - ${HOME}/config-repo:/config-repo
+    environment:
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=file:///config-repo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - scaler-network
 
@@ -12,10 +22,17 @@ services:
     ports:
       - "8761:8761"
     depends_on:
-      - config-server
+      config-server:
+        condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: default
-      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=default
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - scaler-network
 
@@ -24,10 +41,18 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - eureka-server
+      eureka-server:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: default
       SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      JWT_SECRET: ${JWT_SECRET}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - scaler-network
 
@@ -44,7 +69,7 @@ services:
     volumes:
       - mysql-user-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${USER_DB_USER}", "-p${USER_DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,7 +89,7 @@ services:
     volumes:
       - mysql-product-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${PRODUCT_DB_USER}", "-p${PRODUCT_DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -76,14 +101,21 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - config-server
-      - eureka-server
-      - mysql-user
+      eureka-server:
+        condition: service_healthy
+      mysql-user:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/${USER_DB_NAME}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-user:3306/${USER_DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: ${USER_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
-      JWT_SECRET: q5v8y/B?E(H+MbPeShVmYq3t6w9z$C&F
+      JWT_SECRET: ${JWT_SECRET:-q5v8y/B?E(H+MbPeShVmYq3t6w9z$C&F)J@NcRfUjXn2r4u7x!A%D*G-KaPdSgVk}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - scaler-network
 
@@ -92,20 +124,27 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - config-server
-      - eureka-server
-      - mysql-product
+      eureka-server:
+        condition: service_healthy
+      mysql-product:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-product:3306/${PRODUCT_DB_NAME}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-product:3306/${PRODUCT_DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: ${PRODUCT_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${PRODUCT_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - scaler-network
-
-volumes:
-  mysql-user-data:
-  mysql-product-data:
 
 networks:
   scaler-network:
     driver: bridge
+
+volumes:
+  mysql-user-data:
+  mysql-product-data:

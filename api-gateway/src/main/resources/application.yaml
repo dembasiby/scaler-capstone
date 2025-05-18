@@ -16,11 +16,10 @@ spring:
           predicates:
             - Path=/api/products/**
         - id: user-service
-          uri: lib://user-service
+          uri: lb://user-service
           predicates:
             - Path=/api/users/**
             - Path=/api/auth/**
-        # Add other service routes later
 eureka:
   client:
     service-url:
@@ -28,6 +27,11 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
 
+# Add JWT secret configuration
+jwt:
+  secret: ${JWT_SECRET:q5v8y/B?E(H+MbPeShVmYq3t6w9z$C&F}
+
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+    com.dembasiby.apigateway: DEBUG

@@ -105,4 +105,26 @@ public class User implements UserDetails {
     public void setUserProfile(UserProfile profile) {
         this.userProfile = profile;
     }
+
+    @Column(name = "reset_token")
+    private String resetToken;
+    
+    @Column(name = "reset_token_expiry")
+    private Long resetTokenExpiry;
+    
+    public String getResetToken() {
+        return resetToken;
+    }
+    
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+    
+    public Long getResetTokenExpiry() {
+        return resetTokenExpiry;
+    }
+    
+    public void setResetTokenExpiry(Long resetTokenExpiry) {
+        this.resetTokenExpiry = resetTokenExpiry;
+    }
 }

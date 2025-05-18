@@ -14,12 +14,19 @@ public class UserRegistrationDto {
     private String password;
     
     // Getters and setters
-    public @NotBlank(message = "Email is required") @Email(message = "Email should be valid") String getEmail() {
+    public String getEmail() {
         return email;
     }
 
-    public void setEmail(@NotBlank(message = "Email is required") @Email(message = "Email should be valid") String email) {
+    public void setEmail(String email) {
         this.email = email;
     }
-
+    
+    public String getPassword() {
+        return password;
+    }
+    
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

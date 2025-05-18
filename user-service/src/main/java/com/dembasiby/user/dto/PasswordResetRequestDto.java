@@ -8,4 +8,12 @@ public class PasswordResetRequestDto {
     @Email(message = "Email should be valid")
     private String email;
     
-    // Getters and
+    // Getters and setters
+    public String getEmail() {
+        return email;
+    }
+    
+    public void setEmail(String email) {
+        this.email = email;
+    }
+}
